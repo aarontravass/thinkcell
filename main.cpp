@@ -1,6 +1,74 @@
 #include <iostream>
+#include <map>
 
 using namespace std;
+
+
+
+template<typename K, typename V>
+class interval_map {
+	friend void IntervalMapTest();
+	V m_valBegin;
+	map<K,V> m_map;
+public:
+	// constructor associates whole range of K with val
+	interval_map(V const& val)
+	: m_valBegin(val)
+	{}
+
+	// Assign value val to interval [keyBegin, keyEnd).
+	// Overwrite previous values in this interval.
+	// Conforming to the C++ Standard Library conventions, the interval
+	// includes keyBegin, but excludes keyEnd.
+	// If !( keyBegin < keyEnd ), this designates an empty interval,
+	// and assign must do nothing.
+	void assign( K const& keyBegin, K const& keyEnd, V const& val ) {
+// INSERT YOUR SOLUTION HERE
+        // If the range is negative, then we don't assign
+        if(!(keyBegin < keyEnd)) return;
+        // find the first pointer to keyBegin
+        auto it = m_map.upper_bound(key);
+        // base case
+        // if keyBegin is absent, then we insert (keyBegin, V) and (keyEnd, mValBegin)
+        // visual representation
+        // -inf------(keyBegin)--------keyEnd------- +inf
+        //    A      |   V         V   |   A      A
+        if(it == m_map.end()) {
+            m_map.insert(pair<K,V>(keyBegin, val));
+            m_map.insert(pair<K,V>(keyEnd, m_valBegin));
+        }
+        else {
+            // `it` represents a key which satisfies this condition    key1<key<=key2
+            // consider the case of
+            // -inf------(1)--------(6)------- +inf
+            //    A      |   B      |   A      A
+            // if we want to insert (5) - (6) - C
+            // we check if the value is same then we insert from 5 onwards and keep merging
+            // consecutive intervals untill we reach keyEnd
+            pair<map<K,V>, bool> insertionResult = m_map.insert(pair<K,V>(keyBegin, val));
+            // itr points to the newly inserted key
+            auto itr = insertionResult.first;
+            // loop till
+
+        }
+
+	}
+
+	// look-up of the value associated with key
+	V const& operator[]( K const& key ) const {
+		auto it=m_map.upper_bound(key);
+		if(it==m_map.begin()) {
+			return m_valBegin;
+		} else {
+			return (--it)->second;
+		}
+	}
+};
+
+// Many solutions we receive are incorrect. Consider using a randomized test
+// to discover the cases that your implementation does not handle correctly.
+// We recommend to implement a test function that tests the functionality of
+// the interval_map, for example using a map of int intervals to char.
 
 int main()
 {
