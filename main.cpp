@@ -34,8 +34,8 @@ public:
         // -inf------(keyBegin)--------keyEnd------- +inf
         //    A      |   V         V   |   A      A
         if(it == m_map.end()) {
-            m_map.insert(pair<K,V>(keyBegin, val));
-            m_map.insert(pair<K,V>(keyEnd, m_valBegin));
+            m_map.insert(std::pair<K,V>(keyBegin, val));
+            m_map.insert(std::pair<K,V>(keyEnd, m_valBegin));
         }
         else {
             // `it` represents a key which satisfies this condition    key1<key<=key2
@@ -45,19 +45,23 @@ public:
             // if we want to insert (5) - (6) - C
             // we check if the value is same then we insert from 5 onwards and keep merging
             // consecutive intervals untill we reach keyEnd
-            auto insertionResult = m_map.insert(pair<K,V>(keyBegin, val));
+            // since map is a binary search tree, we just insert it and let the stl handle it
+            auto insertionResult = m_map.insert(std::pair<K,V>(keyBegin, val));
             // itr points to the newly inserted key
             auto itr = insertionResult.first;
+            // we want to process the next iterator, hence we increment it
             itr++;
-            // loop till keyEnd
+            // loop till keyEnd and end of map
             while((itr->first < keyEnd) && itr != m_map.end()){
-                auto nextItr = next(itr, 1);
+                auto nextItr = std::next(itr, 1);
                 // erase the key, val pair since it's been overwritten
+                // which is the same as merging overlapping intervals
                 m_map.erase(itr->first);
+                // assign the old iterator to the new iterator
                 itr = nextItr;
             }
             // finally, insert the last key
-            m_map.insert(pair<K,V>(keyEnd, m_valBegin));
+            m_map.insert(std::pair<K,V>(keyEnd, m_valBegin));
         }
 
 	}
