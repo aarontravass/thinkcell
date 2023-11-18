@@ -45,11 +45,18 @@ public:
             // if we want to insert (5) - (6) - C
             // we check if the value is same then we insert from 5 onwards and keep merging
             // consecutive intervals untill we reach keyEnd
-            pair<map<K,V>, bool> insertionResult = m_map.insert(pair<K,V>(keyBegin, val));
+            pair<auto, bool> insertionResult = m_map.insert(pair<K,V>(keyBegin, val));
             // itr points to the newly inserted key
             auto itr = insertionResult.first;
-            // loop till
-
+            itr++;
+            // loop till keyEnd
+            while(itr->first < keyEnd && itr != m_map.end()){
+                // erase the key, val pair since it's been overwritten
+                m_map.erase(itr->first);
+                itr++;
+            }
+            // finally, insert the last key
+            m_map.insert(pair<K,V>(keyEnd, m_valBegin));
         }
 
 	}
