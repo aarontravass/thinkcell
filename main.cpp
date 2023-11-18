@@ -27,7 +27,7 @@ public:
         // If the range is negative, then we don't assign
         if(!(keyBegin < keyEnd)) return;
         // find the first pointer to keyBegin
-        auto it = m_map.upper_bound(key);
+        auto it = m_map.upper_bound(keyBegin);
         // base case
         // if keyBegin is absent, then we insert (keyBegin, V) and (keyEnd, mValBegin)
         // visual representation
@@ -45,15 +45,16 @@ public:
             // if we want to insert (5) - (6) - C
             // we check if the value is same then we insert from 5 onwards and keep merging
             // consecutive intervals untill we reach keyEnd
-            pair<auto, bool> insertionResult = m_map.insert(pair<K,V>(keyBegin, val));
+            auto insertionResult = m_map.insert(pair<K,V>(keyBegin, val));
             // itr points to the newly inserted key
             auto itr = insertionResult.first;
             itr++;
             // loop till keyEnd
-            while(itr->first < keyEnd && itr != m_map.end()){
+            while((itr->first < keyEnd) && itr != m_map.end()){
+                auto nextItr = next(itr, 1);
                 // erase the key, val pair since it's been overwritten
                 m_map.erase(itr->first);
-                itr++;
+                itr = nextItr;
             }
             // finally, insert the last key
             m_map.insert(pair<K,V>(keyEnd, m_valBegin));
@@ -77,8 +78,23 @@ public:
 // We recommend to implement a test function that tests the functionality of
 // the interval_map, for example using a map of int intervals to char.
 
+void print(interval_map<char, int> &inmap){
+    cout<<"========================"<<endl;
+    for(int i = -5;i<12;i++){
+        cout<<i<<" "<<inmap[i]<<endl;
+    }
+    cout<<"========================"<<endl;
+}
+
 int main()
 {
-    cout << "Hello world!" << endl;
+    interval_map<char, int> inmap(1);
+    inmap.assign(1,5,2);
+    print(inmap);
+    inmap.assign(3,6,3);
+    print(inmap);
+    inmap.assign(0, 10, 4);
+    print(inmap);
+
     return 0;
 }
