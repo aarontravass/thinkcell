@@ -44,6 +44,7 @@ public:
 
             // our last pointer is the last seen pointer
             auto lastPointer = previousPointer;
+            V lastPointerValue = lastPointer->second;
             // `it` represents a key which satisfies this condition    key1<key<=key2
             // consider the case of
             // -inf------(1)--------(6)------- +inf
@@ -52,10 +53,19 @@ public:
             // we check if the value is same then we insert from 5 onwards and keep merging
             // consecutive intervals untill we reach keyEnd
             // since map is a binary search tree, we just insert it and let the stl handle it
+
+
+            // we handle an edge case of the key already existing.
+            // for this, we already have the pointer in `previousPointer` and we delete that key and then insert
+
+            if(previousPointer->first == keyBegin) {
+                m_map[keyBegin] = val;
+            }
             auto insertionResult = m_map.insert(std::pair<K,V>(keyBegin, val));
             auto itr = insertionResult.first;
             itr++;
             auto nextPointer = itr;
+
             // we start from lower bound, keeping track of the last iterator we visited
             // loop till keyEnd and end of map
             while((itr->first < keyEnd) && itr != m_map.end()){
@@ -66,14 +76,28 @@ public:
                 m_map.erase(itr->first);
                 // assign current pointer to lastPointer
                 lastPointer = itr;
+                lastPointerValue = lastPointer->second;
                 // assign the old iterator to the new iterator
                 itr = nextPointer;
             }
+
             // finally, insert the last key
-            if(nextPointer == m_map.end()) m_map.insert(std::pair<K,V>(keyEnd, m_valBegin));
-            else m_map.insert(std::pair<K,V>(keyEnd, lastPointer->second));
+            m_map.insert(
+                            std::pair<K,V>(
+                                keyEnd,
+                                nextPointer == m_map.end() ? m_valBegin : lastPointerValue
+                            )
+                        );
+
         }
 
+	}
+
+	void printer(){
+	    cout<<"==============="<<endl;
+        for(auto itr = m_map.begin();itr != m_map.end();itr++){
+            cout<<(itr->first)<<" "<<itr->second<<endl;
+        }
 	}
 
 	// look-up of the value associated with key
@@ -92,7 +116,7 @@ public:
 // We recommend to implement a test function that tests the functionality of
 // the interval_map, for example using a map of int intervals to char.
 
-void print(interval_map<char, int> &inmap){
+void print(interval_map<int, int> &inmap){
     cout<<"========================"<<endl;
     for(int i = -5;i<12;i++){
         cout<<i<<" "<<inmap[i]<<endl;
@@ -102,19 +126,24 @@ void print(interval_map<char, int> &inmap){
 
 int main()
 {
-    interval_map<char, int> inmap(1);
-    /*
-    inmap.assign(2,5,2);
-    print(inmap);
-    inmap.assign(3,6,3);
-    print(inmap);
-    */
-    inmap.assign(1, 10, 4);
-    print(inmap);
-    inmap.assign(2, 5,5);
-    print(inmap);
-    //inmap.assign(8, 11, 7);
+    interval_map<int, int> inmap(1);
+
+    //inmap.assign(2,5,2);
     //print(inmap);
+    //inmap.assign(3,6,3);
+    //print(inmap);
+
+    inmap.assign(1, 10, 2);
+    inmap.printer();
+    print(inmap);
+    inmap.assign(4, 5,3);
+    inmap.printer();
+    print(inmap);
+    inmap.assign(5, 6,4);
+    inmap.printer();
+    print(inmap);
+    inmap.assign(3, 8, 7);
+    print(inmap);
 
     return 0;
 }
