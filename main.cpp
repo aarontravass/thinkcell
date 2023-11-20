@@ -34,39 +34,36 @@ public:
         // -inf------(keyBegin)--------keyEnd------- +inf
         //    A      |   V         V   |   A      A
         if(lowerBound == m_map.end()) {
-            m_map.insert(std::pair<K,V>(keyBegin, val));
-            m_map.insert(std::pair<K,V>(keyEnd, m_valBegin));
+            m_map.insert(std::make_pair(keyBegin, val));
+            m_map.insert(std::make_pair(keyEnd, m_valBegin));
         }
         else {
             // let's keep track of the previous iterator
-            auto previousPointer = lowerBound->first == keyBegin ? lowerBound : std::next(lowerBound, -1);
+            auto previousPointer = m_map.find(keyBegin) != m_map.end() ? lowerBound : std::next(lowerBound, -1);
             // now our `previous` points to either the same pointer or the previous pointer
 
             // our last pointer is the last seen pointer
             auto lastPointer = previousPointer;
+            // we copy the value since we will be using it later
             V lastPointerValue = lastPointer->second;
-            // `it` represents a key which satisfies this condition    key1<key<=key2
-            // consider the case of
-            // -inf------(1)--------(6)------- +inf
-            //    A      |   B      |   A      A
-            // if we want to insert (5) - (6) - C
-            // we check if the value is same then we insert from 5 onwards and keep merging
-            // consecutive intervals untill we reach keyEnd
-            // since map is a binary search tree, we just insert it and let the stl handle it
 
+
+
+            // since map is a binary search tree, we just insert it and let the stl handle it
+            auto insertionResult = m_map.insert(std::make_pair(keyBegin, val));
 
             // we handle an edge case of the key already existing.
-            // for this, we already have the pointer in `previousPointer` and we delete that key and then insert
-
-            if(previousPointer->first == keyBegin) {
-                m_map[keyBegin] = val;
+            // for this, we already have the pointer in `previousPointer` and we delete the old key
+            if(!insertionResult.second){
+                m_map.erase(keyBegin);
+                insertionResult = m_map.insert(std::make_pair(keyBegin, val));
             }
-            auto insertionResult = m_map.insert(std::pair<K,V>(keyBegin, val));
             auto itr = insertionResult.first;
+            // we start processing the next pointer
             itr++;
             auto nextPointer = itr;
 
-            // we start from lower bound, keeping track of the last iterator we visited
+            // we start from next pointer, keeping track of the last iterator we visited and the next pointer
             // loop till keyEnd and end of map
             while((itr->first < keyEnd) && itr != m_map.end()){
 
@@ -83,17 +80,19 @@ public:
 
             // finally, insert the last key
             m_map.insert(
-                            std::pair<K,V>(
-                                keyEnd,
-                                nextPointer == m_map.end() ? m_valBegin : lastPointerValue
-                            )
+                        std::make_pair(
+                            keyEnd,
+                            nextPointer == m_map.end() ? m_valBegin : lastPointerValue
+                            // we use the lastPointerValue if keyEnd is within some range
+                            // other we insert m_ValBegin
+                        )
                         );
 
         }
 
 	}
 
-	void printer(){
+	void print(){
 	    cout<<"==============="<<endl;
         for(auto itr = m_map.begin();itr != m_map.end();itr++){
             cout<<(itr->first)<<" "<<itr->second<<endl;
@@ -126,24 +125,56 @@ void print(interval_map<int, int> &inmap){
 
 int main()
 {
-    interval_map<int, int> inmap(1);
 
-    //inmap.assign(2,5,2);
-    //print(inmap);
-    //inmap.assign(3,6,3);
-    //print(inmap);
+//first test case
+interval_map<int, char> fooh { 'z' };
+fooh.assign(2,5,'a');
+fooh.print();
+std::cout << fooh[6] << std::endl << std::endl;
 
-    inmap.assign(1, 10, 2);
-    inmap.printer();
-    print(inmap);
-    inmap.assign(4, 5,3);
-    inmap.printer();
-    print(inmap);
-    inmap.assign(5, 6,4);
-    inmap.printer();
-    print(inmap);
-    inmap.assign(3, 8, 7);
-    print(inmap);
+//second test case
+// expected : z  b  z
+fooh = interval_map<int, char>{'z'};
+fooh.assign(1,4,'b');
+cout << fooh[0] << " " << fooh[1] << " " << fooh[5] << endl;
+
+//third test case
+// expected: A
+fooh = interval_map<int, char>{'z'};
+fooh.assign(1,6,'A');
+fooh.assign(2,4,'B');
+cout << fooh[5] << endl;
+fooh.print();
+
+
+//forth test case
+fooh = interval_map<int, char>{'z'};
+//expected [0,'a'],[1,'z']
+fooh.assign(0,1,'a');
+fooh.print();
+
+
+//fifth test case
+// expected [0,'f']
+fooh = interval_map<int, char>{'z'};
+fooh.assign(1,2,'c');
+fooh.assign(2,3,'d');
+fooh.assign(3,4,'e');
+fooh.assign(4,15,'g');
+fooh.assign(0,10,'f');
+fooh.print();
+cout << endl;
+
+
+//sixth test case
+// expected: 0,'d'  2,'c'
+fooh = interval_map<int, char>{'z'};
+fooh.assign(1,4,'c');
+fooh.assign(0,2,'d');
+fooh.print();
+cout << endl;
+
+
 
     return 0;
 }
